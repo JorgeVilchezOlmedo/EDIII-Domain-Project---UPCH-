@@ -16,3 +16,17 @@ gmx pdb2gmx -f (protname.pdb) -o wt.gro -water tip3pp
 #-water (modelo a utilizar de agua, comiunmente tip3p) (Recordar leer que es tip3p más tecnicamente)
 
 gmx editconf -f ()
+
+
+gmx pdb2gmx -f wt.pdb -o wt.gro -water tip3p
+gmx editconf -f wt.gro -o box.gro -c -d 2.0 -bt triclinic
+gmx solvate -cp box.gro -cs spc216.gro -o solv.gro -p topol.top
+gmx grompp -f ions.mdp -c solv.gro -p topol.top -o ions.tpr
+gmx genion -s ions.tpr -o ions.gro -p topol.top -pname NA -nname CL -neutral
+gmx grompp -f minim.mdp -c ions.gro -p topol.top -o em.tpr
+gmx mdrun -v -deffnm em
+gmx grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr
+gmx grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p topol.top -o npt.tpr
+gmx mdrun -deffnm npt -v
+gmx grompp -f md.mdp -c npt.gro -t npt.cpt -p topol.top -o md.tpr
+gmx mdrun -deffnm md -v -pin auto -update gpu
