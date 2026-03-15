@@ -1,4 +1,4 @@
-# Comandos en Gromacs Uso general 
+un# Comandos en Gromacs Uso general 
 
 ## Usar el cd , asegurarse de crear una carpeta unica para cada cosa antes de comenzar a actuar
 ### Crear carpetas para cada simulacion de cada mutante. Definir mdp de *ions, nvt npt y minim*  (Reminder, how to nano every parameter), estos se pueden configurar en el nano si es que quieres cambiar parametros, por ahora no es necesario
