@@ -169,11 +169,11 @@ def main():
     print("STARTING MOLECULAR DYNAMICS PIPELINE")
     print("===================================================\n")
 
-    # =====================================================
+      # =====================================================
     # STEP 1 — pdb2gmx
     # =====================================================
 
-    cmd1 = (/home/jorge/WNV_MD_Mutations/MD_FullProt/MDPs
+    cmd1 = (
         f'echo "{FORCEFIELD_SELECTION} {WATER_SELECTION}" | '
         f'{GMX} pdb2gmx '
         f'-f "{pdb_local}" '
@@ -222,13 +222,13 @@ def main():
         "STEP 3 — Solvating system with TIP3P-compatible water"
     )
 
-    # =====================================================
+      # =====================================================
     # STEP 4 — Prepare ions
     # =====================================================
 
     cmd4 = (
         f'{GMX} grompp '
-        f'-f "{MDP_DIR}/ions.mdp"'
+        f'-f "{MDP_DIR}/ions.mdp" '
         f'-c solv.gro '
         f'-p topol.top '
         f'-o ions.tpr '
@@ -240,13 +240,13 @@ def main():
         "STEP 4 — Preparing ion generation"
     )
 
-    # =====================================================
+       # =====================================================
     # STEP 5 — Add ions
     # =====================================================
 
     cmd5 = (
         f'echo "SOL" | '
-        f'{GMX} genion '-f "{MDP_DIR}/ions.mdp"
+        f'{GMX} genion '
         f'-s ions.tpr '
         f'-o ions.gro '
         f'-p topol.top '
@@ -264,13 +264,13 @@ def main():
     # STEP 6 — Energy minimization
     # =====================================================
 
-    cmd6 = (
-        f'{GMX} grompp '
-        f'-f ../MDPs/minim.mdp '
-        f'-c ions.gro '
-        f'-p topol.top '
-        f'-o em.tpr'
-    )
+  cmd6 = (
+    f'{GMX} grompp '
+    f'-f "{MDP_DIR}/minim.mdp" '
+    f'-c ions.gro '
+    f'-p topol.top '
+    f'-o em.tpr'
+)
 
     run_command(
         cmd6,
@@ -293,15 +293,14 @@ def main():
     # STEP 8 — NVT equilibration
     # =====================================================
 
-    cmd8 = (
-        f'{GMX} grompp '
-        f'-f ../MDPs/nvt.mdp '
-        f'-c em.gro '
-        f'-r em.gro '
-        f'-p topol.top '
-        f'-o nvt.tpr'
-    )
-
+   cmd8 = (
+    f'{GMX} grompp '
+    f'-f "{MDP_DIR}/nvt.mdp" '
+    f'-c em.gro '
+    f'-r em.gro '
+    f'-p topol.top '
+    f'-o nvt.tpr'
+)
     run_command(
         cmd8,
         "STEP 8 — Preparing NVT equilibration"
@@ -324,16 +323,15 @@ def main():
     # STEP 10 — NPT equilibration
     # =====================================================
 
-    cmd10 = (
-        f'{GMX} grompp '
-        f'-f ../MDPs/npt.mdp '
-        f'-c nvt.gro '
-        f'-r nvt.gro '
-        f'-t nvt.cpt '
-        f'-p topol.top '
-        f'-o npt.tpr'
-    )
-
+   cmd10 = (
+    f'{GMX} grompp '
+    f'-f "{MDP_DIR}/npt.mdp" '
+    f'-c nvt.gro '
+    f'-r nvt.gro '
+    f'-t nvt.cpt '
+    f'-p topol.top '
+    f'-o npt.tpr'
+)
     run_command(
         cmd10,
         "STEP 10 — Preparing NPT equilibration"
@@ -356,14 +354,14 @@ def main():
     # STEP 12 — Production MD
     # =====================================================
 
-    cmd12 = (
-        f'{GMX} grompp '
-        f'-f ../MDPs/md.mdp '
-        f'-c npt.gro '
-        f'-t npt.cpt '
-        f'-p topol.top '
-        f'-o md.tpr'
-    )
+   cmd12 = (
+    f'{GMX} grompp '
+    f'-f "{MDP_DIR}/md.mdp" '
+    f'-c npt.gro '
+    f'-t npt.cpt '
+    f'-p topol.top '
+    f'-o md.tpr'
+)
 
     run_command(
         cmd12,
@@ -405,11 +403,6 @@ def main():
         "STEP 13 — Running production molecular dynamics"
     )
 
-# Finished
-    run_command(
-        cmd13,
-        "STEP 13 — Running production molecular dynamics"
-    )
 
     # =====================================================
     # Finished
