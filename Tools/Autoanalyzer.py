@@ -246,6 +246,17 @@ def main():
     )
 
     run(cmd9, "STEP 9 — Extracting extreme structures")
+#Step_Proj
+	cmd_proj = (
+    f'printf "3\\n3\\n" | '
+    f'{GMX} anaeig '
+    f'-v eigenvec.trr '
+    f'-s md.tpr '
+    f'-f processed.xtc '
+    f'-proj proj.xvg '
+    f'-first 1 '
+    f'-last 1'
+)
 
     # =====================================================
     # FINISHED
