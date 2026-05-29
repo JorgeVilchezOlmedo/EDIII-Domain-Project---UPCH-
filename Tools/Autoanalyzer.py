@@ -224,12 +224,18 @@ def main():
 
     run(cmd8, "STEP 8 — Calculating PCA components")
 
-    # =====================================================
+      # =====================================================
     # STEP 9 — Extreme conformations
     # =====================================================
 
+    # First selection:
+    # 3 = C-alpha (fit group)
+
+    # Second selection:
+    # 3 = C-alpha (eigenvector group)
+
     cmd9 = (
-        f'printf "3\\n" | '
+        f'printf "3\\n3\\n" | '
         f'{GMX} anaeig '
         f'-v eigenvec.trr '
         f'-s md.tpr '
