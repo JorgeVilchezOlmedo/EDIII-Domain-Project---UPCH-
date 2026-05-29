@@ -97,15 +97,18 @@ def main():
     )
 
     run(cmd2a, "STEP 2A — Removing periodic boundary conditions")
-
     # =====================================================
     # STEP 2B — Rotational/translational fitting
     # =====================================================
 
-    # Group 4 = Backbone
+    # First selection:
+    # 4 = Backbone (fit group)
+
+    # Second selection:
+    # 0 = System (output group)
 
     cmd2b = (
-        f'printf "4\\n4\\n" | '
+        f'printf "4\\n0\\n" | '
         f'{GMX} trjconv '
         f'-s md.tpr '
         f'-f noPBC.xtc '
