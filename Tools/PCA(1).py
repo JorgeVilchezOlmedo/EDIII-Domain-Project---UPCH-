@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
-Plot multiple eigenvalue and explained variance curves from GROMACS.
-Looks for files named eigenval1.xvg, eigenval2.xvg, etc.
-Validates that the corresponding eigenvecN.trr file exists.
+Plot eigenvalues and explained variance from multiple GROMACS PCA outputs.
+
+Compatible naming examples:
+    WT_eigenval.xvg
+    L312P_eigenval.xvg
+    mutant1_eigenval.xvg
+
+Automatically searches for:
+    *_eigenval.xvg
+
+And checks for corresponding:
+    *_eigenvec.trr
 """
 
 import numpy as np
@@ -11,101 +21,243 @@ import matplotlib.pyplot as plt
 import glob
 import os
 
+
 def load_xvg(path):
-    """Load eigenvalues from .xvg file ignoring comments (#,@)."""
+    """
+    Load numerical data from XVG file
+    ignoring GROMACS comments (#,@).
+    """
     data = []
+
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
+
             line = line.strip()
-            if not line or line.startswith("#") or line.startswith("@"):
+
+            if (
+                not line
+                or line.startswith("#")
+                or line.startswith("@")
+            ):
                 continue
+
             parts = line.split()
+
             try:
-                val = float(parts[-1])
-                data.append(val)
+                value = float(parts[-1])
+                data.append(value)
+
             except ValueError:
                 continue
+
     return np.array(data, dtype=float)
 
+
+def extract_label(filename):
+    """
+    Extract system label from filename.
+
+    Example:
+        L312P_eigenval.xvg
+        -> L312P
+    """
+
+    base = os.path.basename(filename)
+
+    label = (
+        base
+        .replace("_eigenval.xvg", "")
+        .replace(".xvg", "")
+    )
+
+    return label
+
+
 def main():
-    # --- Detect eigenval*.xvg files ---
-    eigenval_files = sorted(glob.glob("eigenval*.xvg"))
+
+    # -------------------------------------------------
+    # Detect all eigenvalue files
+    # -------------------------------------------------
+
+    eigenval_files = sorted(
+        glob.glob("*eigenval*.xvg")
+    )
+
     if not eigenval_files:
-        print("No eigenval*.xvg files found")
+        print("No eigenvalue files found.")
         return
 
-    print("Files found:", eigenval_files)
+    print("\nDetected files:")
+    for f in eigenval_files:
+        print("  ", f)
 
-    # Fixed labels for the first five files
-    fixed_labels = ["WT", "L312P", "L312H", "L312R", "T322A","T322K","T322F","K310T"]
+    # -------------------------------------------------
+    # Matplotlib style
+    # -------------------------------------------------
 
-    # --- Eigenvalue curve plot ---
-    plt.figure(figsize=(9,6))
-    cmap = plt.cm.get_cmap("tab10", len(eigenval_files))
+    plt.rcParams["font.family"] = "serif"
+    plt.rcParams["font.size"] = 15
 
-    for idx, f in enumerate(eigenval_files, start=1):
+    cmap = plt.colormaps["tab10"]
+
+    # =================================================
+    # EIGENVALUE PLOT
+    # =================================================
+
+    fig1, ax1 = plt.subplots(figsize=(9, 6))
+
+    for idx, f in enumerate(eigenval_files):
+
         eigenvalues = load_xvg(f)
-        components = np.arange(1, len(eigenvalues) + 1)
 
-        # Validate existence of corresponding eigenvec file
-        trr_file = f.replace("eigenval", "eigenvec").replace(".xvg", ".trr")
+        if len(eigenvalues) == 0:
+            print(f"WARNING: No data in {f}")
+            continue
+
+        components = np.arange(
+            1,
+            len(eigenvalues) + 1
+        )
+
+        label = extract_label(f)
+
+        # ---------------------------------------------
+        # Check corresponding eigenvec file
+        # ---------------------------------------------
+
+        trr_file = f.replace(
+            "eigenval.xvg",
+            "eigenvec.trr"
+        )
+
         if os.path.isfile(trr_file):
-            print(f"CHECK: {trr_file} found for {f}")
+            print(f"OK: {trr_file}")
+
         else:
-            print(f"WARNING: {trr_file} does not exist for {f}")
+            print(
+                f"WARNING: Missing {trr_file}"
+            )
 
-        # Assign label: first five with fixed names, rest with filename
-        if idx <= len(fixed_labels):
-            label = fixed_labels[idx-1]
-        else:
-            label = os.path.splitext(os.path.basename(f))[0]
+        # ---------------------------------------------
+        # Plot
+        # ---------------------------------------------
 
-        plt.plot(components, eigenvalues, marker="o",
-                 color=cmap(idx-1), label=label)
+        ax1.plot(
+            components,
+            eigenvalues,
+            marker="o",
+            linewidth=2,
+            label=label,
+            color=cmap(idx % 10)
+        )
 
-    plt.rcParams['font.family'] = 'serif'
-    plt.rcParams['font.size'] = 15
-    plt.tick_params(axis='both', which='major', labelsize=20)
-    plt.xlabel("Eigenvectors", fontsize=25, labelpad=10)
-    plt.ylabel("Eigenvalues", fontsize=25, labelpad=10)
-    #plt.title("Eigenvalues comparison")
-    plt.grid(True, alpha=0.3)
-    plt.legend()
-    plt.show()
+    ax1.set_xlabel(
+        "Eigenvectors",
+        fontsize=22
+    )
 
-    # --- Explained variance ---
-    plt.figure(figsize=(9,6))
+    ax1.set_ylabel(
+        "Eigenvalues",
+        fontsize=22
+    )
 
-    for idx, f in enumerate(eigenval_files, start=1):
+    ax1.tick_params(
+        axis="both",
+        which="major",
+        labelsize=18
+    )
+
+    ax1.grid(True, alpha=0.3)
+
+    ax1.legend()
+
+    fig1.tight_layout()
+
+    # =================================================
+    # EXPLAINED VARIANCE
+    # =================================================
+
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+
+    for idx, f in enumerate(eigenval_files):
+
         eigenvalues = load_xvg(f)
-        components = np.arange(1, len(eigenvalues) + 1)
+
+        if len(eigenvalues) == 0:
+            continue
+
+        label = extract_label(f)
+
+        components = np.arange(
+            1,
+            len(eigenvalues) + 1
+        )
+
+        # ---------------------------------------------
+        # Variance calculations
+        # ---------------------------------------------
 
         total = np.sum(eigenvalues)
+
         explained = eigenvalues / total
+
         cumulative = np.cumsum(explained)
 
-        # Fixed label or filename
-        if idx <= len(fixed_labels):
-            label_var = fixed_labels[idx-1]
-        else:
-            label_var = os.path.splitext(os.path.basename(f))[0]
+        # ---------------------------------------------
+        # Bar plot
+        # ---------------------------------------------
 
-        # Explained variance bars
-        plt.bar(components + 0.1*idx, explained*100, width=0.1,
-                label=f"{label_var} variance")
+        offset = idx * 0.12
 
-        # Cumulative line
-        plt.plot(components, cumulative*100, marker="o",
-                 color=cmap(idx-1), linestyle="--",
-                 label=f"{label_var} cumulative")
+        ax2.bar(
+            components + offset,
+            explained * 100,
+            width=0.12,
+            alpha=0.7,
+            label=f"{label} variance"
+        )
 
-    plt.xlabel("Principal components")
-    plt.ylabel("Percentage (%)")
-    plt.title("Explained and cumulative variance per component")
-    plt.grid(True, alpha=0.3)
-    plt.legend()
+        # ---------------------------------------------
+        # Cumulative variance
+        # ---------------------------------------------
+
+        ax2.plot(
+            components,
+            cumulative * 100,
+            marker="o",
+            linestyle="--",
+            linewidth=2,
+            color=cmap(idx % 10),
+            label=f"{label} cumulative"
+        )
+
+    ax2.set_xlabel(
+        "Principal Components",
+        fontsize=22
+    )
+
+    ax2.set_ylabel(
+        "Explained Variance (%)",
+        fontsize=22
+    )
+
+    ax2.tick_params(
+        axis="both",
+        which="major",
+        labelsize=18
+    )
+
+    ax2.grid(True, alpha=0.3)
+
+    ax2.legend(
+        fontsize=10,
+        ncol=2
+    )
+
+    fig2.tight_layout()
+
     plt.show()
+
 
 if __name__ == "__main__":
     main()
-
