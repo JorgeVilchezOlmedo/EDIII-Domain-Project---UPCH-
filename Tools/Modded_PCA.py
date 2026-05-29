@@ -1,35 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-Plot eigenvalues and explained variance from multiple GROMACS PCA outputs.
-
-Compatible naming examples:
-    WT_eigenval.xvg
-    L312P_eigenval.xvg
-    mutant1_eigenval.xvg
-
-Automatically searches for:
-    *_eigenval.xvg
-
-And checks for corresponding:
-    *_eigenvec.trr
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import os
 
+# =====================================================
+# USER PARAMETERS
+# =====================================================
+
+N_COMPONENTS = 10   # show only first 10 eigenvectors
+
+# =====================================================
+# FUNCTIONS
+# =====================================================
 
 def load_xvg(path):
-    """
-    Load numerical data from XVG file
-    ignoring GROMACS comments (#,@).
-    """
+
     data = []
 
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
+
         for line in f:
 
             line = line.strip()
@@ -54,13 +46,6 @@ def load_xvg(path):
 
 
 def extract_label(filename):
-    """
-    Extract system label from filename.
-
-    Example:
-        L312P_eigenval.xvg
-        -> L312P
-    """
 
     base = os.path.basename(filename)
 
@@ -73,11 +58,11 @@ def extract_label(filename):
     return label
 
 
-def main():
+# =====================================================
+# MAIN
+# =====================================================
 
-    # -------------------------------------------------
-    # Detect all eigenvalue files
-    # -------------------------------------------------
+def main():
 
     eigenval_files = sorted(
         glob.glob("*eigenval*.xvg")
@@ -89,10 +74,10 @@ def main():
 
     print("\nDetected files:")
     for f in eigenval_files:
-        print("  ", f)
+        print(" ", f)
 
     # -------------------------------------------------
-    # Matplotlib style
+    # Plot settings
     # -------------------------------------------------
 
     plt.rcParams["font.family"] = "serif"
@@ -111,8 +96,13 @@ def main():
         eigenvalues = load_xvg(f)
 
         if len(eigenvalues) == 0:
-            print(f"WARNING: No data in {f}")
             continue
+
+        # ---------------------------------------------
+        # KEEP ONLY FIRST 10 PCs
+        # ---------------------------------------------
+
+        eigenvalues = eigenvalues[:N_COMPONENTS]
 
         components = np.arange(
             1,
@@ -122,7 +112,7 @@ def main():
         label = extract_label(f)
 
         # ---------------------------------------------
-        # Check corresponding eigenvec file
+        # Check TRR file
         # ---------------------------------------------
 
         trr_file = f.replace(
@@ -134,9 +124,7 @@ def main():
             print(f"OK: {trr_file}")
 
         else:
-            print(
-                f"WARNING: Missing {trr_file}"
-            )
+            print(f"WARNING: Missing {trr_file}")
 
         # ---------------------------------------------
         # Plot
@@ -152,7 +140,7 @@ def main():
         )
 
     ax1.set_xlabel(
-        "Eigenvectors",
+        "Principal Components",
         fontsize=22
     )
 
@@ -161,11 +149,7 @@ def main():
         fontsize=22
     )
 
-    ax1.tick_params(
-        axis="both",
-        which="major",
-        labelsize=18
-    )
+    ax1.set_xticks(range(1, N_COMPONENTS + 1))
 
     ax1.grid(True, alpha=0.3)
 
@@ -186,12 +170,18 @@ def main():
         if len(eigenvalues) == 0:
             continue
 
-        label = extract_label(f)
+        # ---------------------------------------------
+        # KEEP ONLY FIRST 10 PCs
+        # ---------------------------------------------
+
+        eigenvalues = eigenvalues[:N_COMPONENTS]
 
         components = np.arange(
             1,
             len(eigenvalues) + 1
         )
+
+        label = extract_label(f)
 
         # ---------------------------------------------
         # Variance calculations
@@ -241,11 +231,7 @@ def main():
         fontsize=22
     )
 
-    ax2.tick_params(
-        axis="both",
-        which="major",
-        labelsize=18
-    )
+    ax2.set_xticks(range(1, N_COMPONENTS + 1))
 
     ax2.grid(True, alpha=0.3)
 
