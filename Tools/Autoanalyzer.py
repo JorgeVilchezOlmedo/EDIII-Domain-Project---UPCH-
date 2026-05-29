@@ -107,15 +107,15 @@ def main():
     # Second selection:
     # 0 = System (output group)
 
-    cmd2b = (
-        f'printf "4\\n0\\n" | '
-        f'{GMX} trjconv '
-        f'-s md.tpr '
-        f'-f noPBC.xtc '
-        f'-o processed.xtc '
-        f'-fit rot+trans '
-        f'-n index.ndx'
-    )
+   cmd2b = (
+    f'printf "4\\n0\\n" | '
+    f'{GMX} trjconv '
+    f'-s md.tpr '
+    f'-f noPBC.xtc '
+    f'-o processed.xtc '
+    f'-fit rot+trans '
+    f'-n index.ndx'
+)
 
     run(cmd2b, "STEP 2B — Fitting trajectory")
     # =====================================================
