@@ -79,13 +79,17 @@ def main():
     run(cmd1, "STEP 1 — Creating index file")
 
       # =====================================================
-    # STEP 2A — Remove PBC
+    # STEP 2A — Remove periodic boundary conditions
     # =====================================================
 
-    # Group 1 = Protein
+    # First selection:
+    # 1 = Protein (centering)
+
+    # Second selection:
+    # 0 = System (output)
 
     cmd2a = (
-        f'printf "1\\n1\\n" | '
+        f'printf "1\\n0\\n" | '
         f'{GMX} trjconv '
         f'-s md.tpr '
         f'-f md.xtc '
