@@ -106,8 +106,7 @@ def main():
 
     # Second selection:
     # 0 = System (output group)
-
-   cmd2b = (
+cmd2b = (
     f'printf "4\\n0\\n" | '
     f'{GMX} trjconv '
     f'-s md.tpr '
